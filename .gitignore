@@ -6,6 +6,9 @@ inputs/*
 # pyenv
 .python-version
 
+# python
+__pycache__/
+
 # Environments
 .env
 

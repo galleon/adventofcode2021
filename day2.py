@@ -1,14 +1,16 @@
-import argparse
-import tempfile
+from argparse import ArgumentParser
+from common import AdventDay
 
 
-def day2_1(filename):
-    answer = [0, 0]
-    # open a file and read it
-    with open(filename, "r") as f:
-        prev = None
-        try:
-            # read the file line by line
+class AdventDay2(AdventDay):
+    def __init__(self, test:bool = False):
+        super().__init__(day=2, test=test)
+        self.answer = None
+
+    def part1(self):
+        answer = [0, 0]
+        # open a file and read it
+        with open(self.filename, "r") as f:
             for line in f:
                 # convert the string to an integer
                 tokens = line.split()
@@ -21,19 +23,12 @@ def day2_1(filename):
                 else:
                     return -1
             return answer[0]*answer[1]
-        except ValueError:
-            print(f"Error {ValueError} with file {filename}")
-            return -1
 
 
-
-def day2_2(filename):
-    answer = [0, 0, 0]
-    # open a file and read it
-    with open(filename, "r") as f:
-        prev = None
-        try:
-            # read the file line by line
+    def part2(self):
+        answer = [0, 0, 0]
+        # open a file and read it
+        with open(self.filename, "r") as f:
             for line in f:
                 # convert the string to an integer
                 tokens = line.split()
@@ -47,22 +42,13 @@ def day2_2(filename):
                 else:
                     return -1
             return answer[0]*answer[1]
-        except ValueError:
-            print(f"Error {ValueError} with file {filename}")
-            return -1
 
 
 # define main
 if __name__ == "__main__":
     # define the parser
-    parser = argparse.ArgumentParser(description="Day 1 Challenge")
-    parser.add_argument(
-        "--filename",
-        help="The file to read",
-        type=str,
-        required=False,
-        default="inputs/day2.txt",
-    )
+    parser = ArgumentParser(description="First year Advent of Code")
+
     parser.add_argument(
         "--test",
         action="store_true",
@@ -73,10 +59,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.test:
-        # create a temp file
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            assert 1 == 1
+    day = AdventDay2(test=args.test)
 
-    else:
-        print(day2_1(args.filename), day2_2(args.filename))
+    print(day.solve())

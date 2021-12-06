@@ -1,240 +1,60 @@
 from argparse import ArgumentParser
+
+import numpy as np
+
 from common import AdventDay
-import copy
+from data import Board
+
 
 class AdventDay4(AdventDay):
-    def __init__(self, test:bool = False):
+    def __init__(self, test: bool = False):
         super().__init__(day=4, test=test)
-        self.answer = None
 
+    def load_input(self):
+        with open(self.filename, "r") as f:
+            lines = f.readlines()
+
+            draws = map(int, lines[0].strip().split(","))
+
+            nboards = int(len(lines) / 6)
+
+            boards = {}
+
+            for ib in range(nboards):
+                board = Board(5, 5)
+                for i in range(0, 5):
+                    for j, d in enumerate(lines[2 + ib * 6 + i].strip().split()):
+                        board.set_cell(i, j, int(d))
+
+                boards[str(ib)] = board
+
+            return draws, boards
 
     def part1(self):
-        # open a file and read it
-        with open(self.filename, "r") as f:
-            all_lines = f.readlines()
+        draws, boards = self.load_input()
 
-            numbers = all_lines[0]
-
-            nboards = int(len(all_lines)/6)
-            boards = []
-            for i in range(nboards):
-                board = []
-                for j in range(0, 5):
-                    line = []
-                    for d in all_lines[2 + i*6 +j].split():
-                        line.append(int(d))
-                    board.append(line)
-                boards.append(board)
-
-            for dd in numbers.strip().split(','):
-                d = int(dd)
-                for k in range(nboards):
-                    for i in range(5):
-                        for j in range(5):
-                            if boards[k][i][j] == int(d):
-                                boards[k][i][j] = -1
-
-                    # check lines
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][i][j]
-                        if sum == -5:
-                            # we have a winner
-                            score = 0
-                            for ii in range(5):
-                                for jj in range(5):
-                                    if boards[k][ii][jj] != -1:
-                                        score += boards[k][ii][jj]
-                            return d*score
-                    # check colums
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][j][i]
-                        if sum == -5:
-                            # we have a winner
-                            score = 0
-                            for ii in range(5):
-                                for jj in range(5):
-                                    if boards[k][ii][jj] != -1:
-                                        score += boards[k][ii][jj]
-                            return d*score
-
-                    # check diagonals
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][i][i]
-                        if sum == -5:
-                            # we have a winner
-                            score = 0
-                            for ii in range(5):
-                                for jj in range(5):
-                                    if boards[k][ii][jj] != -1:
-                                        score += boards[k][ii][jj]
-                            return d*score
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][4-i][4-i]
-                        if sum == -5:
-                            # we have a winner
-                            score = 0
-                            for ii in range(5):
-                                for jj in range(5):
-                                    if boards[k][ii][jj] != -1:
-                                        score += boards[k][ii][jj]
-                            return d*score
-
-            return 0
-
+        for draw in draws:
+            for ib, board in boards.items():
+                board.remove_number(int(draw))
+                if board.is_winning():
+                    # self.submit_answer(1, int( draw * board.sum_all_positions()))
+                    return int(draw * board.sum_all_positions())
 
     def part2(self):
-        # open a file and read it
-        with open(self.filename, "r") as f:
-            all_lines = f.readlines()
+        draws, boards = self.load_input()
 
-            numbers = all_lines[0]
+        last_winning = None
+        for draw in draws:
+            key_to_remove = set()
+            for ib, board in boards.items():
+                board.remove_number(int(draw))
+                if board.is_winning():
+                    last_winning = int(draw * board.sum_all_positions())
+                    key_to_remove.add(ib)
+            for k in key_to_remove:
+                boards.pop(k, None)
 
-            nboards = int(len(all_lines)/6)
-
-            boards=[]
-            for i in range(nboards):
-                board = []
-
-                for j in range(0, 5):
-                    line1 = []
-                    line2 = []
-                    for d in all_lines[2 + i*6 +j].split():
-                        line1.append(int(d))
-                        line2.append(int(d))
-                    board.append(line1)
-                boards.append(board)
-
-            to_remove = set()
-            last_d = -1
-            list_numbers = numbers.strip().split(',');
-
-            last_winning = None
-
-            for dd in list_numbers:
-                d = int(dd)
-
-                boards_ = copy.deepcopy(boards)
-                for index in sorted(to_remove, reverse=True):
-                    boards_.remove(boards[index])
-
-                boards = boards_
-
-                to_remove.clear()
-
-                for k in range(len(boards)):
-                    for i in range(5):
-                        for j in range(5):
-                            if boards[k][i][j] == d:
-                                boards[k][i][j] = -1
-
-                # Test win
-                to_remove = set()
-                for k in range(len(boards)):
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][i][j]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    # check colums
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][j][i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    # check diagonals
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][i][i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][4-i][4-i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                if len(to_remove) > 0:
-                    last_winning = d
-
-            boards=[]
-            for i in range(nboards):
-                board = []
-
-                for j in range(0, 5):
-                    line = []
-                    for d in all_lines[2 + i*6 +j].split():
-                        line.append(int(d))
-                    board.append(line)
-                boards.append(board)
-
-
-            for dd in list_numbers:
-                d = int(dd)
-
-                boards_ = copy.deepcopy(boards)
-                for index in sorted(to_remove, reverse=True):
-                    boards_.remove(boards[index])
-
-                boards = boards_
-
-                to_remove.clear()
-
-                for k in range(len(boards)):
-                    for i in range(5):
-                        for j in range(5):
-                            if boards[k][i][j] == d:
-                                boards[k][i][j] = -1
-
-                # Test win
-                to_remove = set()
-                for k in range(len(boards)):
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][i][j]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    # check colums
-                    for i in range(5):
-                        sum = 0
-                        for j in range(5):
-                            sum+= boards[k][j][i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    # check diagonals
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][i][i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    for i in range(5):
-                        sum = 0
-                        sum+= boards[k][4-i][4-i]
-                        if sum == -5:
-                            to_remove.add(k)
-
-                    if len(to_remove) > 0 and last_winning == d:
-                        score = 0
-                        for ii in range(5):
-                            for jj in range(5):
-                                if boards[k][ii][jj] != -1:
-                                    score += boards[k][ii][jj]
-                        return d*score
-
+        return last_winning
 
 
 # define main

@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
+
 from common import AdventDay
 
 
 class AdventDay3(AdventDay):
-    def __init__(self, test:bool = False):
+    def __init__(self, test: bool = False):
         super().__init__(day=3, test=test)
         self.answer = None
 
@@ -14,14 +15,14 @@ class AdventDay3(AdventDay):
 
             ndigits = len(all_lines[0].strip())
 
-            ones = [0]*ndigits
-            zeros = [0]*ndigits
-            epsilon = [0]*ndigits
-            gamma = [0]*ndigits
+            ones = [0] * ndigits
+            zeros = [0] * ndigits
+            epsilon = [0] * ndigits
+            gamma = [0] * ndigits
 
             for token in all_lines:
                 for i, c in enumerate(token.strip()):
-                    if c=='0':
+                    if c == "0":
                         zeros[i] += 1
                     else:
                         ones[i] += 1
@@ -32,11 +33,10 @@ class AdventDay3(AdventDay):
                 else:
                     epsilon[i] = 1
 
-            g = int(''.join(map(str, gamma)), 2)
-            e = int(''.join(map(str, epsilon)), 2)
+            g = int("".join(map(str, gamma)), 2)
+            e = int("".join(map(str, epsilon)), 2)
 
-            return g*e
-
+            return g * e
 
     def part2(self):
         # open a file and read it
@@ -47,8 +47,8 @@ class AdventDay3(AdventDay):
 
             lines = all_lines
 
-            ones = [0]*ndigits
-            zeros = [0]*ndigits
+            ones = [0] * ndigits
+            zeros = [0] * ndigits
 
             for i in range(ndigits):
 
@@ -56,15 +56,15 @@ class AdventDay3(AdventDay):
 
                 for token in lines:
                     # convert the string to an integer
-                    if token[i]=='0':
+                    if token[i] == "0":
                         zeros[i] += 1
                     else:
                         ones[i] += 1
 
                 # Keep most common ones
-                mcb = '0'
+                mcb = "0"
                 if ones[i] >= zeros[i]:
-                    mcb = '1'
+                    mcb = "1"
                 for token in lines:
                     if token[i] == mcb:
                         new_list.append(token)
@@ -76,23 +76,23 @@ class AdventDay3(AdventDay):
 
             o2 = int(new_list[0], 2)
 
-            ones = [0]*ndigits
-            zeros = [0]*ndigits
+            ones = [0] * ndigits
+            zeros = [0] * ndigits
 
             lines = all_lines
             for i in range(ndigits):
                 new_list = []
 
                 for token in lines:
-                    if token[i]=='0':
+                    if token[i] == "0":
                         zeros[i] += 1
                     else:
                         ones[i] += 1
 
                 # Keep least common ones
-                lcb = '1'
+                lcb = "1"
                 if zeros[i] <= ones[i]:
-                    lcb = '0'
+                    lcb = "0"
 
                 for token in lines:
                     if token[i] == lcb:
@@ -105,7 +105,7 @@ class AdventDay3(AdventDay):
 
             co2 = int(new_list[0], 2)
 
-            return o2*co2
+            return o2 * co2
 
 
 # define main

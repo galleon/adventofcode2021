@@ -14,7 +14,7 @@ from data import Board, Graph
 
 class AdventDay10(AdventDay):
     def __init__(self, test: bool = False):
-        super().__init__(test=test)
+        super().__init__(day=10, test=test)
 
     def load_input(self):
         print("Loading input...")
@@ -46,6 +46,17 @@ class AdventDay10(AdventDay):
         }
 
         costs = {")": 3, "]": 57, "}": 1197, ">": 25137}
+
+        def clean_line(line, length):
+            new_line = (
+                line.replace("()", "")
+                .replace("[]", "")
+                .replace("{}", "")
+                .replace("<>", "")
+            )
+            if len(new_line) < length:
+                clean_line(new_line, len(new_line))
+            return new_line
 
         closing = opening.values()
 

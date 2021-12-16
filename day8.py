@@ -14,7 +14,7 @@ from data import Board, Graph
 
 class AdventDay8(AdventDay):
     def __init__(self, test: bool = False):
-        super().__init__(test=test)
+        super().__init__(day=8, test=test)
 
     def load_input(self):
         print("Loading input...")

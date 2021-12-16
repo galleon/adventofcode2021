@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import defaultdict
 
 import numpy as np
 
@@ -14,31 +15,29 @@ class AdventDay4(AdventDay):
         with open(self.filename, "r") as f:
             lines = f.readlines()
 
-            draws = map(int, lines[0].strip().split(","))
+            draws = lines[0].strip().split(",")  # map(int, lines[0].strip().split(","))
 
             nboards = int(len(lines) / 6)
 
             boards = {}
-
             for ib in range(nboards):
                 board = Board(5, 5)
                 for i in range(0, 5):
                     for j, d in enumerate(lines[2 + ib * 6 + i].strip().split()):
-                        board.set_cell(i, j, int(d))
+                        board[(i, j)] = d
 
-                boards[str(ib)] = board
+                boards[ib] = board
 
             return draws, boards
 
     def part1(self):
         draws, boards = self.load_input()
-
         for draw in draws:
             for ib, board in boards.items():
-                board.remove_number(int(draw))
+                board.move_to_ghost(draw)
                 if board.is_winning():
-                    # self.submit_answer(1, int( draw * board.sum_all_positions()))
-                    return int(draw * board.sum_all_positions())
+                    # self.submit_answer(1, int(draw) * board.sum_all(ghost=False))
+                    return int(draw) * board.sum_all(ghost=False)
 
     def part2(self):
         draws, boards = self.load_input()
@@ -47,9 +46,9 @@ class AdventDay4(AdventDay):
         for draw in draws:
             key_to_remove = set()
             for ib, board in boards.items():
-                board.remove_number(int(draw))
+                board.move_to_ghost(draw)
                 if board.is_winning():
-                    last_winning = int(draw * board.sum_all_positions())
+                    last_winning = int(draw) * board.sum_all(ghost=False)
                     key_to_remove.add(ib)
             for k in key_to_remove:
                 boards.pop(k, None)

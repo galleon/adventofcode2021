@@ -2,38 +2,22 @@ import re
 from argparse import ArgumentParser
 from collections import defaultdict
 
-import networkx as nx
-import numpy as np
-from matplotlib import pyplot as plt
-
 from common import AdventDay
 from data import Board, Graph
 
 
 class AdventDay5(AdventDay):
     def __init__(self, test: bool = False):
-        super().__init__(test=test)
+        super().__init__(day=5, test=test)
 
     def load_input(self, diagonals=False):
         print("Loading input...")
         with open(self.filename, "r") as f:
             lines = f.readlines()
 
+            board = Board()
+
             xmax, ymax = 0, 0
-            for line in lines:
-                point1, point2 = line.split(" -> ")
-                x1 = int(point1.split(",")[0])
-                y1 = int(point1.split(",")[1])
-                x2 = int(point2.split(",")[0])
-                y2 = int(point2.split(",")[1])
-
-                xmax = max(xmax, x1, x2)
-                ymax = max(ymax, y1, y2)
-
-            print(">", xmax, ymax)
-
-            board = Board(xmax + 1, ymax + 1)
-
             for line in lines:
                 point1, point2 = line.split(" -> ")
                 x1 = int(point1.split(",")[0])
@@ -49,11 +33,10 @@ class AdventDay5(AdventDay):
                 else:
                     x, y = x1, y1
                     while x != x2 or y != y2:
-                        value = board.get_cell(y, x) + 1
-                        board.set_cell(y, x, value)
+                        board[y, x] += 1
                         x += dx
                         y += dy
-                    board.set_cell(y2, x2, board.get_cell(y2, x2) + 1)
+                    board[y2, x2] += 1
 
             return board
 
@@ -63,14 +46,8 @@ class AdventDay5(AdventDay):
         if "test" in self.filename:
             print(board)
 
-        max = board._grid.max()
-        value = 0
-        for v in range(2, max + 1):
-            tmp = int(board._grid[board._grid == v].sum() / v)
-            value += tmp
+        value = len(list(filter(lambda x: x > 1, board._kv.values())))
 
-        # if "test" not in self.filename:
-        #    self.submit_answer(1, value)
         return value
 
     def part2(self):
@@ -79,11 +56,7 @@ class AdventDay5(AdventDay):
         if "test" in self.filename:
             print(board)
 
-        max = board._grid.max()
-        value = 0
-        for v in range(2, max + 1):
-            tmp = int(board._grid[board._grid == v].sum() / v)
-            value += tmp
+        value = len(list(filter(lambda x: x > 1, board._kv.values())))
 
         # if "test" not in self.filename:
         #    self.submit_answer(1, value)

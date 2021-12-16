@@ -5,7 +5,9 @@ from collections import defaultdict
 class Graph(object):
     """Graph data structure, undirected by default."""
 
-    def __init__(self, connections=[], directed=False):
+    def __init__(self, entry, destination, connections=[], directed=False):
+        self._entry = entry
+        self._destination = destination
         self._graph = defaultdict(set)
         self._directed = directed
         self.add_connections(connections)
@@ -41,85 +43,210 @@ class Graph(object):
 
         return node1 in self._graph and node2 in self._graph[node1]
 
-    def find_path(self, node1, node2, path=[]):
+    def find_paths(self, start, path=[]):
         """Find any path between node1 and node2 (may not be shortest)"""
 
-        path = path + [node1]
-        if node1 == node2:
+        path = path + [start]
+        if start == self._destination:
             return path
-        if node1 not in self._graph:
+        if start not in self._graph:
             return None
-        for node in self._graph[node1]:
+        for node in self._graph[start]:
             if node not in path:
-                new_path = self.find_path(node, node2, path)
+                new_path = self.find_path(node, path)
                 if new_path:
                     return new_path
         return None
 
+    def count_paths(self, start, visited=defaultdict(int), twice=None):
+        """Count all paths from start to end"""
+
+        # if start is the end, return 1
+        if start == self._destination:
+            return 1
+
+        if start == self._entry and visited[start] > 0:
+            return 0
+
+        # if start has already been visited, return 0
+        if visited[start] > 0:
+            return 0
+
+        # Add 1 to visited for start
+        visited[start] += 1
+
+        result = 0
+        for node in self._graph[start]:
+            result += self.count_paths(node, defaultdict(int, visited), twice)
+
+        return result
+
+    def count_paths_12(self, start, visited=defaultdict(int), twice=None):
+        # if start is the end, return 1
+        if start == self._destination:
+            return 1
+
+        # if start has already been visited, return 0
+        if visited[start] > 0:
+            return 0
+
+        # Add 1 to visited for start only if lowercase (upper case node can be visited multiple times)
+        if start.islower():
+            visited[start] += 1
+
+        result = 0
+        for node in self._graph[start]:
+            result += self.count_paths_12(node, defaultdict(int, visited), twice)
+
+        return result
+
+    def count_paths_12_(self, start, end="end", visited=defaultdict(int), twice=None):
+        # if start is the end, return 1
+        if start == end:
+            return 1
+
+        if start == self._entry and visited[start] > 0:
+            return 0
+
+        # if start has already been visited, return 0
+        if visited[start] > 0:
+            if twice is None:
+                twice = start
+            else:
+                return 0
+
+        # Add 1 to visited for start only if lowercase (upper case node can be visited multiple times)
+        if start.islower():
+            visited[start] += 1
+
+        result = 0
+        for node in self._graph[start]:
+            result += self.count_paths_12_(node, end, defaultdict(int, visited), twice)
+
+        return result
+
     def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
+        return self._graph.__str__()
 
 
 class Board:
-    def __init__(self, height, width):
+
+    cardinals = {
+        "E": (-1, 0),
+        "W": (1, 0),
+        "S": (0, -1),
+        "N": (0, 1),
+        "NE": (-1, 1),
+        "NW": (1, 1),
+        "SE": (1, -1),
+        "SW": (-1, -1),
+    }
+
+    def __init__(self, width=None, height=None, operator=int):
         self._width = width
         self._height = height
-        self._grid = np.zeros((height, width), dtype=int)
+        self._kv = {}
+        self._kv_ghost = {}
+        self._operator = operator
 
-    def set_cell(self, i, j, value):
-        self._grid[i, j] = int(value)
+    @staticmethod
+    def from_text(values, operator=str):
+        board = Board(operator=operator)
+        if isinstance(values, str):
+            if "\n" in values:
+                values = values.split("\n")
+            else:
+                values = [values]
+        y = 0
+        for row in values:
+            x = 0
+            for c in row:
+                board._kv[(x, y)] = operator(c)
+                x += 1
+            y += 1
+        board._width = x
+        board._height = y
+        return board
 
-    def get_cell(self, i, j):
-        return self._grid[i, j]
-
-    def get_neighbours(self, i, j):
-        return [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
-
-    def get_neighbours_with_walls(self, x, y):
-        neighbours = self.get_neighbours(x, y)
-        neighbours_with_walls = []
-        for n in neighbours:
-            if self.grid[n] == 1:
-                neighbours_with_walls.append(n)
-        return neighbours_with_walls
-
-    def get_sum_of_neighbours(self, x, y, wall=True):
-        if wall:
-            neighbours = self.get_neighbours_with_walls(x, y)
+    def __getitem__(self, xy):
+        if self._operator is int:
+            return self._kv.get(xy, 0)
         else:
-            neighbours = self.get_neighbours(x, y)
-        sum = 0
-        for n in neighbours:
-            sum += self._grid[n]
-        return sum
+            return self._kv.get(xy, " ")
 
-    def get_sum_of_column(self, index):
-        return self._grid[:, index].sum()
+    def __setitem__(self, xy, value):
+        # print(f"Setting {xy} to {value} as {type(value)}")
+        self._kv[xy] = value
 
-    def get_sum_of_line(self, index):
-        return self._grid[index, :].sum()
+    def __delitem__(self, key):
+        del self._kv[key]
 
-    def get_sum_of_diagonal(self, x1, y1, x2, y2):
-        return np.diagonal(self._grid).sum()
+    def __iter__(self):
+        return iter(self._kv)
 
-    def remove_number(self, value):
-        self._grid[self._grid == value] = -1
-
-    def is_winning(self, test_diagonals=False):
-        # check if one row is winning
-        if -self._width in np.sum(self._grid, axis=1).tolist():
-            return True
-        if -self._height in np.sum(self._grid, axis=0).tolist():
-            return True
-        if self._height == self._width and test_diagonals:
-            if np.trace(self._grid) == -self._width:
-                return True
-            if np.trace(np.fliplr(self._grid)) == -self._width:
-                return True
-        return False
-
-    def sum_all_positions(self):
-        return self._grid[self._grid > 0].sum()
+    def __contains__(self, key):
+        return key in self._kv
 
     def __str__(self):
-        return "\n".join("| ".join(str(c) for c in row) for row in self._grid)
+        table = ""
+        for j in range(max(y for _, y in self._kv) + 1):
+            for i in range(max(x for x, _ in self._kv) + 1):
+                table += str(self[(i, j)])
+            table += "\n"
+        table = table.replace("0", ".")
+        return table
+
+    def max(self):
+        return max(self._kv.values())
+
+    def min(self):
+        return min(self._kv.values())
+
+    def sum_all(self, ghost=False):
+        if ghost:
+            return sum(map(int, self._kv_ghost.values()))
+        else:
+            return sum(map(int, self._kv.values()))
+
+    def move_to_ghost(self, value):
+        for k, v in dict(self._kv).items():
+            # print(v, type(v), value, type(value))
+            if v == value:
+                del self._kv[k]
+                self._kv_ghost[k] = value
+
+    def is_winning(self):
+        cols = [0] * self._width
+        rows = [0] * self._height
+        for k, v in self._kv_ghost.items():
+            rows[k[0]] += 1
+            if rows[k[0]] == self._width:
+                return True
+            cols[k[1]] += 1
+            if cols[k[1]] == self._height:
+                return True
+
+        return False
+
+    def is_empty(self):
+        return len(self._kv) == 0
+
+    def neighbors(self, x, y, diagonals=False, valid_only=False):
+        offsets = ((0, -1), (1, 0), (0, 1), (-1, 0))
+        if diagonals:
+            offsets = (
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+                (0, -1),
+                (0, 1),
+                (1, -1),
+                (1, 0),
+                (1, 1),
+            )
+
+        for ox, oy in offsets:
+            ox = ox + x
+            oy = oy + y
+            if not valid_only or (ox, oy) in self._kv:
+                yield ox, oy

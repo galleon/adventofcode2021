@@ -48,7 +48,7 @@ if __name__ == "__main__":
         help="The file to read",
         type=str,
         required=False,
-        default="inputs/day1.txt",
+        default="inputs/2021/1",
     )
     parser.add_argument(
         "--test",

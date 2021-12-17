@@ -58,10 +58,7 @@ class AdventDay17(AdventDay):
             for y in range(-1000, 1000):
                 if self.launch(x, y, x_min, x_max, y_min, y_max) != -math.inf:
                     success += 1
-
         return success
-
-        print(b)
 
 
 # define main
